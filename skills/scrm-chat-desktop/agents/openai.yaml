@@ -1,7 +1,0 @@
-interface:
-  display_name: "SCRM Chat Desktop"
-  short_description: "Project rules for the scrm_chat_desktop Electron and Vue codebase, mirrored from its Cursor rules."
-  default_prompt: "Use $scrm-chat-desktop to work in E:\zlketang\scrm_chat_desktop and follow the project's existing Cursor rules."
-
-policy:
-  allow_implicit_invocation: true
