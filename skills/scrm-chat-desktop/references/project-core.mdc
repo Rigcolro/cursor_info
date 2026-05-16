@@ -1,0 +1,62 @@
+---
+description: 项目核心规则
+alwaysApply: true
+---
+
+# 项目核心规则
+
+## 命名规范
+- 除 cursor 规则、package.json、electron-builder.yml、electron.vite.config.ts、tsconfig.json、tsconfig.node.json、tsconfig.web.json、eslint.config.mjs、.prettierrc.json、.editorconfig 等配置文件外，**非组件**源码文件与目录统一下划线命名，如 `main_view`、`generate_icons.mjs`。
+- **Vue 单文件组件**：`.vue` 文件名使用**大驼峰（PascalCase）**，如 `App.vue`、`HomeView.vue`；按目录组织的页面入口仍可使用 `index.vue`，如 `views/login/index.vue`。
+
+## scrm_chat_desktop项目核心规则
+- 项目使用Electron + Vue 3 + TypeScript技术栈
+- 项目使用electron-vite + Vite构建
+- 项目使用Element Plus作为UI库
+- 项目使用Tailwind CSS作为CSS框架
+- 项目使用better-sqlite3作为数据库
+- 项目使用electron-log作为日志库
+- 项目使用electron-updater作为更新库
+- 项目使用pnpm作为包管理器
+- 项目使用eslint作为代码规范工具
+- 项目使用prettier作为代码格式化工具
+- 项目使用editorconfig作为编辑器基础设置
+
+## ipc通信
+- 主进程和渲染进程之间使用ipc通信
+- channel.ts中声明通信通道名，INVOKE_WHITELIST和ON_WHITELIST中声明通信通道白名单。在preload/index.ts中实现通信通道的实现，在main/ipc_register.ts中注册通信通道。
+
+## 【强制】禁止使用协议跟随资源（`//...`）
+- **严禁**在任何业务源码里直接使用协议相对地址（`//host/path`）来引用 **图片 / css / js / 字体** 等外链资源；必须写成 **完整 URL**（优先 `https://host/path`）。
+- **原因**：Electron 打包后渲染进程页面通常以 `file://` 打开，`//host/path` 会被解析为 `file://host/path`，从而把外链资源当作本地文件加载，导致「图片/样式/图标」在打包后异常。
+- **唯一例外**：当且仅当该字符串作为入参传给全局的 `parseResourceUrl(...)`（统一做 `file://` 兼容归一化）时，可以保留 `//...` 写法；除此之外一律不允许。
+
+
+## 注释说明（详细注释）
+
+**适用范围**：本节约束**仅适用于**位于 **`.gitignore` 之外**（不被忽略规则匹配）、且属于项目**业务源码**的路径；`node_modules`、`dist`/`out`、构建产物、本地缓存、IDE 临时目录等**已忽略目录内的文件不要求**按本表补注释（若工具链仍生成于忽略路径，亦不在本约定范围内）。**Markdown 文档（`*.md`，如 `README.md`、`CHANGELOG.md`、`docs/**`）以标题与正文叙述为主，不要求**按本表补代码式 JSDoc、成段 `/******/` 分隔或「源码文件头」类注释。
+
+| 序号 | 适用范围 | 要求 |
+| --- | --- | --- |
+| 1 | 方法 / 函数（`.js` / `.mjs` / `.ts` / `.vue` 等） | 方法**前**用 **JSDoc** 写清：作用、功能、**内部执行流程**、**参数**、**返回值**；方法**内**用编号步骤说明每步做什么（如 `1.xxx`、`1.1.xxx`、`2.xxx`，按需细分）。 |
+| 2 | 变量声明（含 Vue `ref` / `reactive` / `computed` 等响应式数据） | 方法**内、外**的变量声明都要说明**变量用途**（干什么用）。 |
+| 3 | Vue **`<template>`** / **`.html`** | **大块** DOM / 页面结构用 HTML 注释标明区块职责，例如：`<!-- 学员会话列表 -->`。 |
+| 4 | `.js` / `.mjs` / `.ts` / `.vue` / **`.html`** 源码 | **大块**成段逻辑用成对分隔注释包住，标明「某类逻辑开始 / 结束」，便于跳转与阅读。**适用范围**：独立 `.js`/`.mjs`/`.ts`、`.vue` 内 `<script>`、**`.html` 内 `<script>`** 等脚本片段（**非**仅指某一种文件或标签）。 |
+| 5 | CSS / SCSS / `.vue` 内 `<style>` | **必要**的类名、复杂选择器或成块样式：在**选择器声明前**用注释说明该类/该块**职责**（布局、主题、状态、与某组件对应关系等）；纯工具类、一眼可辨的简短样式可省略。 |
+| 6 | 任意业务源码文件（`.ts` / `.vue` / `.js` / `.mjs` / `.scss` / `.css` 等） | 在**文件最顶部**（首行 `import` / `export` 之前；若有 shebang 则紧随其后）用 **块注释** 或 **文件级 `/** ... */`** 说明：本文件**负责什么**、**在工程里起什么作用**（与哪些模块配合、对外暴露什么）；纯环境/三方补全的 `.d.ts`、构建或脚本**自动生成**、以及无逻辑仅 re-export 且目录 README 已说明的，可省略或从简。 |
+| 7 | 三方库 API / 配置项（Electron、TIM、Element Plus、`window.api`/IPC、请求封装选项等） | **按需**在调用处或选项对象旁用简短注释说明：**业务含义**、**与本项目约定**（为何传该参数、返回值在业务里代表什么）；**优先**在自封装层（如 `useApi`、`request`、独立 SDK 封装函数）集中说明，业务页避免重复堆砌。**不必**为常识 API（标准库、纯类型已自解释的单个 prop）逐条注释。 |
+
+**成段逻辑注释示例（适用于 `.js` / `.mjs` / `.ts` / `.vue` / `.html` 内 `<script>`）：**
+
+```text
+/****** 学员会话列表相关逻辑开始 ******/
+/**
+ * 获取学员会话列表
+ * @description 获取学员会话列表
+ * @returns {Array} 学员会话列表
+ */
+function getStudentSessionList() {
+  // 获取学员会话列表
+}
+/****** 学员会话列表相关逻辑结束 ******/
+```

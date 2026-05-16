@@ -1,0 +1,40 @@
+---
+description: Pinia 状态管理规范
+alwaysApply: true
+globs: "**/stores/**/*.js"
+---
+
+# Pinia 状态管理规范
+
+## 目录结构
+```
+src/stores/
+├── index.js
+├── modules/
+│   ├── user.js
+│   ├── project.js
+│   └── ...
+```
+
+## 命名规范
+| 类型 | 规范 | 示例 |
+|------|------|------|
+| 模块 | camelCase | userStore |
+| 变量/方法 | camelCase | userList, fetchData |
+| 常量 | UPPER_SNAKE_CASE | API_BASE_URL |
+
+
+## 核心规范
+### `src/stores/index.js`（入口文件）
+- 职责仅限 Pinia 实例创建、插件注册、`app.use(store)` 挂载与导出 `store`
+- 不要求使用 `defineStore`
+- 不放业务状态、getter、action 逻辑
+
+### `src/stores/modules/*.js`（业务模块）
+- 使用 `defineStore` 定义 store
+- 使用 Vue3 组合式 API（如 `ref`、`computed`、`watch`、`reactive`）
+- 导出命名建议：
+  - 组件内使用：`useXxxStore`
+  - 非组件场景可按项目约定补充：`useXxxStoreOut`
+- 在组件中解构响应式状态时，使用 `storeToRefs` 保持响应式
+- Pinia 状态虽然可直接修改（甚至双向绑定），但推荐统一通过 action/方法修改

@@ -1,0 +1,110 @@
+---
+description: Vue 3 组件开发规范
+globs: "**/*.vue"
+alwaysApply: true
+---
+
+# Vue 组件规范
+
+## 核心规范
+- api导入使用useApi钩子，如：`const { project: projectApi } = useApi()`
+- 使用inject注入全局api/属性，如：`const { globalApi: { $bus, $to, $message } } = inject(INJECTION_SYMBOL_GLOBAL_PROPERTIES)`
+- 在 `/utils/global_properties.js` 使用provide提供全局属性/api，如：`provide(INJECTION_SYMBOL_GLOBAL_PROPERTIES, { globalApi: { $bus, $to, $message } })`
+- 组件中使用useGlobalProperties获取全局属性/api，如：`const { globalApi: { $bus, $to, $message } } = useGlobalProperties()`，提示使用`$message`, 异步方法使用`$to`解构。
+```javascript
+import { useGlobalProperties } from '@/utils/global_properties'
+const { globalApi: { $bus, $to, $message } } = useGlobalProperties()
+
+const handleLogin = async () => {
+  const [err, resp] = await $to(loginApi.login(form.value))
+  if (err) {
+    return
+  }
+  const { errcode, errmsg, data} = resp
+  if (+errcode === 0) {
+    errmsg && $message.success(errmsg)
+  }
+}
+```
+- ref、reactive、computed、watch、onMounted、onBeforeUnmount、onUnmounted、onBeforeUpdate、onUpdated、onActivated、onDeactivated、onErrorCaptured、onServerPrefetch、onScopeDispose等函数已使用unplugin-auto-import插件自动导入，无需手动导入, 不需要在组件中导入这些函数
+- icon使用unplugin-icons插件自动导入，无需手动导入, 不需要在组件中导入icon组件。如：`<icon-ep-chat-dot-round />`，其中icon是前缀，ep是集合名称，chat-dot-round是图标名称。
+- 使用setup语法糖
+- 使用defineProps定义props
+- 使用defineEmits定义emits
+- 使用defineOptions定义组件名称
+- 按需使用defineExpose定义暴露出去的属性
+- 按需使用defineSlots定义插槽
+- 按需使用defineModel定义双向绑定
+- 使用组合式api，如 `ref`, `computed`, `watch`, `reactive` ，不要使用选项式api
+- 使用onMounted、onBeforeUnmount、onUnmounted、onBeforeUpdate、onUpdated、onActivated、onDeactivated、onErrorCaptured、onServerPrefetch、onScopeDispose等生命周期函数
+
+## 组件结构
+- 单一职责，区分展示组件与容器组件
+- 复杂组件用目录式：`baseButton/baseButton.vue` + `index.js`
+- 简单组件用单文件：`simpleCard.vue`
+
+## 模版template
+- 模版上复杂表达式提取到 `computed` 或 方法中去
+- 模版上图片资源地址使用parseResourceUrl方法处理
+- 模板上v-html指令使用parseHtmlUrl方法处理，避免XSS攻击
+
+## name
+- 组件name属性必须要有，使用defineOptions定义组件名称，命名为camelCase格式。如：`scrmConsoleIndex`
+
+## Props
+- 明确声明 type、default、validator
+- 禁止直接修改 props，通过 $emit 通知父组件
+- 对象/数组 default 必须用函数返回
+- 使用defineProps定义props
+
+```javascript
+const props = defineProps({
+  userId: { type: [Number, String], required: true },
+  list: { type: Array, default: () => [] },
+  config: { type: Object, default: () => ({}) }
+})
+```
+
+## Events
+- 事件名使用 kebab-case：`@change-value`、`@submit-form`
+- 使用defineEmits定义emits
+- 事件总线使用三方库mitt，使用Symbol定义事件类型
+
+
+```javascript
+import mitt from "mitt"
+const bus = mitt()
+export const EVENT_SYMBOL_CHANGE_VALUE = Symbol("change-value")
+export const EVENT_SYMBOL_SUBMIT_FORM = Symbol("submit-form")
+```
+
+```javascript
+const emit = defineEmits(["change-value", "submit-form"])
+const onSubmitForm = () => {
+  emit("submit-form")
+}
+```
+
+## 生命周期
+- 异步请求优先放在 `onMounted`，避免在 `setup` 阶段直接操作 DOM
+- 定时器、事件监听必须在 `onBeforeUnmount` 中清理
+
+## scss
+- 组件内样式默认加 `scoped`，全局样式文件或明确需要全局覆盖时可不加
+
+## 逻辑组织
+- 复杂表达式提取到 `computed` 或 方法中去
+- `computed` 用于派生数据，方法用于操作
+- 避免模板内写复杂逻辑
+
+## 性能
+- 列表渲染使用唯一 `key`，避免直接使用索引作为key
+- 大数据列表考虑 vue-virtual-scroller
+- 静态数据可用 `Object.freeze()` 减少响应式开销
+- 使用el-select组件时，注意选项可能很多，造成性能问题，避免页面卡顿
+
+## vue组件说明
+- keep-alive组件：优先使用 `include` 做白名单缓存；仅在明确场景下使用 `exclude`，避免与 `include` 同时配置造成歧义。
+
+## icon使用
+- 使用unplugin-icons插件自动导入，无需手动导入, 不需要在组件中导入icon组件。如：`<icon-ep-chat-dot-round />`，其中icon是前缀，ep是集合名称，chat-dot-round是图标名称。

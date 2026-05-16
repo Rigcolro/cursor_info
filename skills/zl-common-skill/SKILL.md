@@ -106,3 +106,18 @@
 3. 将两个模板中的字段合并为一份 `增强提示词（最终版）`，缺失信息保留 `[待补充]`。
 4. 执行规则引用检查：若实现中涉及判空逻辑，按需加载 `references/concise-empty-check.md`。
 5. 用增强提示词驱动后续实现与验证，并输出包含模板和 references 的“规则执行清单”。
+
+## SCRM Chat Desktop 项目规则
+
+当工作目录位于 `E:\zlketang\scrm_chat_desktop`，或用户明确要求遵循该项目 `.cursor/rules` 时，额外执行以下规则：
+
+1. 先读取 `references/scrm-chat-desktop/project-core.mdc` 作为项目总规则。
+2. 按需读取对应规则文件：
+   - `references/scrm-chat-desktop/vue-component.mdc`
+   - `references/scrm-chat-desktop/api-call.mdc`
+   - `references/scrm-chat-desktop/pinia-store.mdc`
+   - `references/scrm-chat-desktop/tyscript-style.mdc`
+   - `references/scrm-chat-desktop/interface-convention.mdc`
+   - `references/scrm-chat-desktop/packaging.mdc`
+3. 将这些 `.mdc` 视为该项目高优先级本地约束。
+4. 若项目规则与用户当前明确要求冲突，优先遵循用户要求，并简要说明冲突点。

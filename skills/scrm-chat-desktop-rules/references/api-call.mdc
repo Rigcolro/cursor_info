@@ -1,0 +1,65 @@
+---
+description: API 调用与请求规范
+globs: "**/api/modules/*.js"
+alwaysApply: true
+---
+
+# API 调用规范
+
+## 目录约定
+```
+src/api/
+├── index.js - 入口文件，导出api模块，自动导入modules目录下的所有文件。供给useApi钩子使用。(这一项不属于globs范围)
+├── modules/
+│   ├── project.js - 项目相关接口
+│   ├── interface.js - 接口相关接口
+│   └── ... - 其他业务模块接口
+```
+
+## 请求封装
+- 统一使用 `request`（来自 `@/utils/request`）
+- `@/utils/request` 底层基于 `request/zlRequest` + Axios 拦截器封装
+- 按业务模块拆分：`src/api/modules/project.js`、`src/api/modules/interface.js` 等
+
+## 请求配置
+- GET 使用 `params`，POST/PUT/DELETE 使用 `data`
+- RESTful：GET 查询、POST 新增、PUT 更新、DELETE 删除
+- 超时默认 15s
+
+```javascript
+import request from "@/utils/request"
+
+export function getUserList(params) {
+  return request({ url: '/admin/manage/member', method: 'get', params })
+}
+export function addUser(data) {
+  return request({ url: '/admin/manage/member', method: 'post', data })
+}
+```
+或者默认导出，同时添加基础请求路径做拼接
+
+```javascript
+import request from "@/utils/request"
+
+const baseUrl = "/admin/interface_cat_tree"
+
+export default {
+  name: "接口目录树相关接口",
+  /**
+   * @description 复制
+   * @param params
+   * @returns {ZlRequest}
+   */
+  copy: (params) => request({ url: `${baseUrl}/copy`, method: "post", data: params })
+}
+
+```
+## 响应格式
+```json
+{ "errcode": 0, "errmsg": "成功", "data": {} }
+```
+
+## 特殊配置
+- `warning: false` - 关闭全局错误提示
+- `isDisabledSameRequest: true` - 防重复提交
+- `isValidateUrl: true` - 开启 URL 参数校验（扩展字段链接需合法）
