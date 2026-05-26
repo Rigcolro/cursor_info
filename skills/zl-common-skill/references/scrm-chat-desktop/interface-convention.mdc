@@ -1,7 +1,0 @@
----
-description: 界面约定
-alwaysApply: true
----
-
-# 界面约定
-- 滚动区域使用el-scrollbar组件包裹。
